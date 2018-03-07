@@ -20,7 +20,8 @@ parser.add_argument('-ip','--ipaddress', help='router ip', required=True)
 parser.add_argument('-l','--location', help='tftp server ip', required=True)
 parser.add_argument('-p','--password', help='cli pass', required=True)
 parser.add_argument('-u','--username', help='cli username', required=True)
-parser.add_argument('-t','--systype', help='type of the router OS: cisco, vyos', required=True)
+parser.add_argument('-v','--vrf', help='vrf name', required=False)
+parser.add_argument('-t','--systype', help='type of the router OS: cisco-ios, cisco-nxos, fortigate, vyos', required=True)
 args = vars(parser.parse_args())
 
 ip = args['ipaddress']
@@ -28,6 +29,7 @@ uname = args['username']
 tftp_location = args['location']
 passwd = args['password']
 system_type = args ['systype']
+vrf_name = args ['vrf']
 
 
 def CreateQuerySting (tftp_ip, rtr_name, sys_type):
@@ -35,7 +37,7 @@ def CreateQuerySting (tftp_ip, rtr_name, sys_type):
     if sys_type == "cisco-ios":
         query_string = "copy startup-config tftp://%s/%s-%s-confg\n\n\n" % (str(tftp_ip), time_stamp, str(rtr_name))
     elif sys_type == "cisco-nxos":
-        query_string = "copy startup-config tftp://%s/%s-%s-confg vrf dc-management\n" % (str(tftp_ip), time_stamp, str(rtr_name))
+        query_string = "copy startup-config tftp://%s/%s-%s-confg vrf %s\n" % (str(tftp_ip), time_stamp, str(rtr_name), str(vrf_name))
     elif sys_type == "fortigate":
         query_string = "execute backup config tftp  %s-%s-confg %s\n" % (time_stamp, str(rtr_name), str(tftp_ip))
     elif sys_type == "vyos":
@@ -55,7 +57,7 @@ remote_conn = remote_conn_pre.invoke_shell()
 
 time.sleep(.5)
 remote_conn.send(CreateQuerySting(tftp_location, ip, system_type))    
-time.sleep(.7)
+time.sleep(.9)
 output = remote_conn.recv(100000)
 print output
 
